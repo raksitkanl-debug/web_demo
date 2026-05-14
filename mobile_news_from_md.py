@@ -35,6 +35,7 @@ def default_output_path(md_path: Path) -> Path:
 
 def normalize_report_markdown(markdown_text: str) -> str:
     text = markdown_text.replace("\r\n", "\n")
+    text = re.sub(r"(?m)^\s*\*{3,}\s*$", "", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip() + "\n"
 

@@ -22,7 +22,7 @@ def render_basic_markdown(markdown_text: str) -> str:
     """Small fallback renderer for the report format when python-markdown is absent."""
     blocks: list[str] = []
     paragraph: list[str] = []
-    in_list = False
+    list_type: str | None = None
 
     def flush_paragraph() -> None:
         nonlocal paragraph
@@ -31,10 +31,10 @@ def render_basic_markdown(markdown_text: str) -> str:
             paragraph = []
 
     def close_list() -> None:
-        nonlocal in_list
-        if in_list:
-            blocks.append("</ul>")
-            in_list = False
+        nonlocal list_type
+        if list_type:
+            blocks.append(f"</{list_type}>")
+            list_type = None
 
     for raw_line in markdown_text.splitlines():
         line = raw_line.rstrip()
@@ -62,13 +62,24 @@ def render_basic_markdown(markdown_text: str) -> str:
         bullet = re.match(r"^\*\s+(.+)$", stripped)
         if bullet:
             flush_paragraph()
-            if not in_list:
+            if list_type != "ul":
+                close_list()
                 blocks.append("<ul>")
-                in_list = True
+                list_type = "ul"
             blocks.append(f"<li>{render_inline(bullet.group(1))}</li>")
             continue
 
-        if in_list and line.startswith((" ", "\t")) and blocks and blocks[-1].endswith("</li>"):
+        numbered = re.match(r"^\d+\.\s+(.+)$", stripped)
+        if numbered:
+            flush_paragraph()
+            if list_type != "ol":
+                close_list()
+                blocks.append("<ol>")
+                list_type = "ol"
+            blocks.append(f"<li>{render_inline(numbered.group(1))}</li>")
+            continue
+
+        if list_type and line.startswith((" ", "\t")) and blocks and blocks[-1].endswith("</li>"):
             blocks[-1] = blocks[-1][:-5] + "<br />\n" + render_inline(stripped) + "</li>"
             continue
 
@@ -82,6 +93,7 @@ def render_basic_markdown(markdown_text: str) -> str:
 
 def render_inline(text: str) -> str:
     escaped = html.escape(text)
+    escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
     return re.sub(
         r"\[([^\]]+)\]\((https?://[^)]+)\)",
         r'<a href="\2">\1</a>',
