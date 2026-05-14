@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Premium News Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans Thai', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif']
+          },
+          boxShadow: {
+            premium: "0 18px 55px rgba(2, 8, 23, .28)",
+            soft: "0 14px 34px rgba(15, 23, 42, .10)"
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #06111f;
+      --bg-soft: #0b1728;
+      --card: rgba(13, 27, 46, .76);
+      --card-strong: rgba(15, 32, 54, .92);
+      --line: rgba(148, 163, 184, .18);
+      --text: #eef6ff;
+      --muted: #9fb2c7;
+      --accent: #69b9ff;
+      --accent-soft: rgba(105, 185, 255, .16);
+    }
+    html:not(.dark) {
+      color-scheme: light;
+      --bg: #f8f5ef;
+      --bg-soft: #fffaf2;
+      --card: rgba(255, 255, 255, .84);
+      --card-strong: rgba(255, 255, 255, .96);
+      --line: rgba(100, 116, 139, .18);
+      --text: #142033;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, .10);
+    }
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(56, 189, 248, .18), transparent 32rem),
+        linear-gradient(180deg, var(--bg), var(--bg-soft) 55%, var(--bg));
+      color: var(--text);
+      transition: background-color .35s ease, color .35s ease;
+    }
+    html:not(.dark) body {
+      background:
+        radial-gradient(circle at 20% -10%, rgba(96, 165, 250, .16), transparent 30rem),
+        linear-gradient(180deg, #fbf7ef, #f6f8fb 52%, #fffaf2);
+    }
+    .safe-bottom { padding-bottom: calc(7.5rem + env(safe-area-inset-bottom)); }
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 48px rgba(2, 8, 23, .18);
+      backdrop-filter: blur(22px);
+    }
+    .card {
+      background: var(--card-strong);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+    .chip.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, .25);
+    }
+    .fade-in {
+      animation: fadeUp .55s cubic-bezier(.2, .8, .2, 1) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .chevron { transform: rotate(180deg); }
+    .article-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .35s ease, opacity .25s ease;
+      opacity: .25;
+    }
+    details[open] .article-body {
+      max-height: 12000px;
+      opacity: 1;
+    }
+    .article-body a, .source-link {
+      color: var(--accent);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    .news-list {
+      display: grid;
+      gap: 1rem;
+    }
+    .article-body ul {
+      padding-left: 0;
+    }
+    .article-body li {
+      list-style: none;
+    }
+    .news-item-card {
+      position: relative;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 1.35rem;
+      background: rgba(255, 255, 255, .035);
+      box-shadow: 0 12px 28px rgba(2, 8, 23, .12);
+    }
+    html:not(.dark) .news-item-card {
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
+    }
+    .news-item-copy {
+      color: var(--text);
+      font-size: .96rem;
+      line-height: 1.78;
+    }
+    .news-item-copy a {
+      display: none;
+    }
+    .read-more-btn {
+      display: inline-flex;
+      min-height: 2.55rem;
+      align-items: center;
+      justify-content: center;
+      gap: .45rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: .65rem 1rem;
+      font-size: .86rem;
+      font-weight: 700;
+    }
+    .media-frame {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.25rem;
+    }
+    .media-frame img, .media-frame video {
+      width: 100%;
+      max-height: 360px;
+      object-fit: cover;
+      border-radius: 1.25rem;
+      border: 1px solid var(--line);
+    }
+    .source-badge {
+      display: inline-flex;
+      min-height: 2.35rem;
+      align-items: center;
+      justify-content: center;
+      max-width: 72%;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .06);
+      color: var(--muted);
+      padding: .62rem .82rem;
+      font-size: .74rem;
+      font-weight: 700;
+      line-height: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    html:not(.dark) .source-badge {
+      background: rgba(248, 250, 252, .9);
+    }
+    .tweet-media {
+      min-height: 0;
+    }
+    .tweet-media:empty {
+      display: none;
+    }
+    .tweet-media {
+      display: grid;
+      gap: .65rem;
+    }
+    .tweet-media img,
+    .tweet-media video {
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      border-radius: 1.25rem;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, .16);
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="font-sans antialiased">
+<div id="app" class="mx-auto min-h-screen w-full max-w-md safe-bottom">
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-[color:var(--bg)]/70 backdrop-blur-2xl">
+    <div class="flex h-14 items-center justify-between px-4">
+      <a href="#top" class="flex items-center gap-2" aria-label="Home">
+        <span class="grid h-8 w-8 place-items-center rounded-2xl bg-sky-400/15 text-sky-300 ring-1 ring-sky-300/20">
+          <i data-lucide="newspaper" class="h-4 w-4"></i>
+        </span>
+        <span class="text-sm font-semibold tracking-wide">NewsOS</span>
+      </a>
+      <div class="flex items-center gap-1.5">
+        <button class="header-search grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 transition hover:bg-white/10" aria-label="Search">
+          <i data-lucide="search" class="h-4 w-4"></i>
+        </button>
+        <button id="theme-toggle" class="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 transition hover:bg-white/10" aria-label="Toggle theme">
+          <i data-lucide="sun-moon" class="h-4 w-4"></i>
+        </button>
+        <button id="menu-toggle" class="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 transition hover:bg-white/10" aria-label="Menu">
+          <i data-lucide="menu" class="h-4 w-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="px-4">
+    <section class="fade-in pb-5 pt-8">
+      <p class="mb-3 text-xs font-medium uppercase tracking-[.22em] text-[color:var(--accent)]">Daily Intelligence</p>
+      <h1 id="hero-title" class="text-[2.35rem] font-semibold leading-[1.05] tracking-normal">รายงานข่าวเชิงกลยุทธ์</h1>
+      <p id="hero-subtitle" class="mt-4 max-w-sm text-[15px] leading-7 text-[color:var(--muted)]">อ่านสรุปข่าวแบบ mobile-first พร้อมหมวดหมู่ ค้นหา และโหมดอ่านสบายตา</p>
+
+      <label class="mt-7 flex h-12 items-center gap-3 rounded-full border border-[color:var(--line)] bg-white/8 px-4 shadow-soft backdrop-blur-xl">
+        <i data-lucide="search" class="h-4 w-4 text-[color:var(--muted)]"></i>
+        <input id="search-input" type="search" class="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[color:var(--muted)]" placeholder="ค้นหาข่าว หัวข้อ หรือแหล่งข่าว">
+      </label>
+
+      <div class="mt-5 grid grid-cols-3 gap-2.5">
+        <button data-jump="Executive Summary" class="quick-action rounded-2xl border border-[color:var(--line)] bg-[color:var(--accent-soft)] px-3 py-3 text-left text-xs font-medium text-[color:var(--text)] transition active:scale-[.98]">
+          <i data-lucide="sparkles" class="mb-2 h-4 w-4 text-[color:var(--accent)]"></i>
+          Summary
+        </button>
+        <button data-jump="Topics" class="quick-action rounded-2xl border border-[color:var(--line)] bg-[color:var(--accent-soft)] px-3 py-3 text-left text-xs font-medium text-[color:var(--text)] transition active:scale-[.98]">
+          <i data-lucide="layers-3" class="mb-2 h-4 w-4 text-[color:var(--accent)]"></i>
+          Topics
+        </button>
+        <button data-jump="ประเด็นร้อน" class="quick-action rounded-2xl border border-[color:var(--line)] bg-[color:var(--accent-soft)] px-3 py-3 text-left text-xs font-medium text-[color:var(--text)] transition active:scale-[.98]">
+          <i data-lucide="flame" class="mb-2 h-4 w-4 text-[color:var(--accent)]"></i>
+          Hot
+        </button>
+      </div>
+    </section>
+
+    <nav class="sticky top-14 z-30 -mx-4 border-y border-[color:var(--line)] bg-[color:var(--bg)]/72 px-4 py-3 backdrop-blur-2xl">
+      <div id="category-pills" class="no-scrollbar flex gap-2 overflow-x-auto"></div>
+    </nav>
+
+    <section class="mt-5 grid grid-cols-2 gap-3" aria-label="Stats">
+      <div class="card rounded-[1.4rem] p-4">
+        <p class="text-xs text-[color:var(--muted)]">ข่าวเด่น</p>
+        <p id="stat-sections" class="mt-1 text-2xl font-semibold">0</p>
+      </div>
+      <div class="card rounded-[1.4rem] p-4">
+        <p class="text-xs text-[color:var(--muted)]">หมวด</p>
+        <p id="stat-links" class="mt-1 text-2xl font-semibold">0</p>
+      </div>
+    </section>
+
+    <section id="feed" class="mt-5 space-y-4"></section>
+  </main>
+
+  <aside id="mobile-menu" class="pointer-events-none fixed inset-x-4 top-16 z-50 translate-y-2 opacity-0 transition duration-200">
+    <div class="glass rounded-[1.6rem] p-2">
+      <button data-menu-filter="ทั้งหมด" class="menu-filter flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm"><span>ทั้งหมด</span><i data-lucide="arrow-right" class="h-4 w-4"></i></button>
+      <button data-menu-filter="Saved" class="menu-filter flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm"><span>Saved</span><i data-lucide="bookmark" class="h-4 w-4"></i></button>
+      <button data-menu-filter="Search" class="menu-filter flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm"><span>Search</span><i data-lucide="search" class="h-4 w-4"></i></button>
+    </div>
+  </aside>
+
+  <nav class="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-md">
+    <div class="glass grid grid-cols-5 rounded-[1.7rem] px-2 py-2">
+      <button data-nav="ทั้งหมด" class="bottom-nav rounded-2xl px-2 py-2.5 text-[11px] text-[color:var(--muted)] transition">
+        <i data-lucide="home" class="mx-auto mb-1 h-4 w-4"></i>Home
+      </button>
+      <button data-nav="Topics" class="bottom-nav rounded-2xl px-2 py-2.5 text-[11px] text-[color:var(--muted)] transition">
+        <i data-lucide="layers-3" class="mx-auto mb-1 h-4 w-4"></i>Topics
+      </button>
+      <button data-nav="Search" class="bottom-nav rounded-2xl px-2 py-2.5 text-[11px] text-[color:var(--muted)] transition">
+        <i data-lucide="search" class="mx-auto mb-1 h-4 w-4"></i>Search
+      </button>
+      <button data-nav="Saved" class="bottom-nav rounded-2xl px-2 py-2.5 text-[11px] text-[color:var(--muted)] transition">
+        <i data-lucide="bookmark" class="mx-auto mb-1 h-4 w-4"></i>Saved
+      </button>
+      <button data-nav="Menu" class="bottom-nav rounded-2xl px-2 py-2.5 text-[11px] text-[color:var(--muted)] transition">
+        <i data-lucide="user-round" class="mx-auto mb-1 h-4 w-4"></i>Menu
+      </button>
+    </div>
+  </nav>
+</div>
+
+<main id="source-content" class="hidden">
+<h1>รายงานข่าวเชิงกลยุทธ์ประจำวันที่ 8 พฤษภาคม 2569</h1>
+<h2>บทสรุปผู้บริหาร (Executive Summary)</h2>
+<p>สถานการณ์โลกในรอบวันถูกครอบงำด้วยความตึงเครียดทางภูมิรัฐศาสตร์ที่ทวีความรุนแรงในตะวันออกกลาง โดยการปะทะทางทหารระหว่างสหรัฐฯ และอิหร่านยังคงเป็นปัจจัยเสี่ยงหลักต่อเสถียรภาพของตลาดโลก ขณะที่เศรษฐกิจไทยเผชิญแรงกดดันจากเงินเฟ้อที่พุ่งสูงขึ้นถึง 2.89% อันเนื่องมาจากวิกฤตพลังงานโลก ทำให้ปัญหาหนี้เกษตรกรและภาระค่าครองชีพกลายเป็นประเด็นร้อนแรงที่สุดในประเทศ ในขณะเดียวกัน ภาคสังคมไทยก็มีการเคลื่อนไหวเชิงรุกในการปกป้องสิทธิในการตรวจสอบข้อเท็จจริง และรัฐบาลเร่งเปิดช่องทางสวัสดิการเพื่อบรรเทาผลกระทบต่อประชาชน</p>
+<h2>ประเด็นวิเคราะห์สำคัญ (TOPIC)</h2>
+<h3>TOPIC #1: ความตึงเครียดทางภูมิรัฐศาสตร์ในตะวันออกกลาง</h3>
+<p>นัยสำคัญ: ความขัดแย้งระหว่างมหาอำนาจยังคงอยู่ในระดับวิกฤต โดยมีรายงานการโจมตีทางทหารที่เพิ่มขึ้นอย่างต่อเนื่องในช่องแคบฮอร์มุซ ซึ่งส่งผลกระทบต่อเสถียรภาพของเส้นทางการค้าโลก</p>
+<ul>
+<li>อิหร่านกล่าวหาว่าสหรัฐฯ ละเมิดข้อตกลงหยุดยิงโดยการโจมตีเรือน้ำมันและเรือลำอื่นที่เข้าสู่ช่องแคบฮอร์มุซ ที่มา: Sky News <a href="https://x.com/SkyNews/status/2052506478959816954">🔗</a></li>
+<li>กองกำลังสหรัฐฯ มีการโจมตีฐานทัพของอิหร่านหลังจากการโจมตีทางเรือที่ &quot;ไม่ถูกยั่วยุ&quot; ที่มา: Al Jazeera English <a href="https://x.com/AJEnglish/status/2052508027152965881">🔗</a></li>
+<li>ประธานาธิบดีทรัมป์เตือน อิหร่านอาจเผชิญการโจมตีจากสหรัฐฯ ระลอกใหม่ที่หนักหน่วงกว่าเดิม หากดื้อดึงปฏิเสธเงื่อนไขล่าสุดเพื่อยุติความขัดแย้ง ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052191303732216284">🔗</a></li>
+</ul>
+<h3>TOPIC #2: แรงกดดันเงินเฟ้อและวิกฤตหนี้สิน</h3>
+<p>นัยสำคัญ: เงินเฟ้อที่พุ่งสูงขึ้นเป็นสัญญาณเตือนถึงผลกระทบจากวิกฤตพลังงานโลกต่อกำลังซื้อของประชาชน ขณะที่เกษตรกรจำนวนมากติดอยู่ในวงจรการจ่ายดอกเบี้ยอย่างเดียว</p>
+<ul>
+<li>ดัชนีเงินเฟ้อเดือนเมษายน 2569 กลับมาพุ่งสูงถึง +2.89% ซึ่งเป็นระดับสูงสุดในรอบ 38 เดือน ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052372886028251171">🔗</a></li>
+<li>เกษตรกรไทยกำลังเผชิญหนี้ขั้นวิกฤตเนื่องจากมีพฤติกรรมจ่ายแต่ดอกเบี้ย ซึ่งอาจทำให้เป็นหนี้ตลอดชีวิต ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052357783308161324">🔗</a></li>
+<li>กบน.ปรับลดราคาน้ำมันทุกชนิดลง 0.85 บาท เพื่อรับมือกับทิศทางตลาดโลกที่กำลังขาลง โดยมีผลบังคับใช้ตั้งแต่วันที่ 8 พฤษภาคม 2569 ที่มา: กรุงเทพธุรกิจ <a href="https://x.com/ktnewsonline/status/2052371934974034341">🔗</a></li>
+</ul>
+<h3>TOPIC #3: การพัฒนาเทคโนโลยีและนวัตกรรม</h3>
+<p>นัยสำคัญ: การพัฒนาด้าน AI และสุขภาพดิจิทัลกำลังก้าวหน้าอย่างรวดเร็ว โดยมีการผสานรวมบริการสุขภาพเข้ากับแอปพลิเคชันหลักของ Google และการเปิดตัวโมเดลภาษาใหม่</p>
+<ul>
+<li>Fitbit app กำลังยกระดับตัวเองเป็นแอป Google Health ใหม่ โดยรวมคุณสมบัติเดิมเข้ากับความสามารถขั้นสูงและข้อมูลเชิงลึกใหม่ ที่มา: Google <a href="https://x.com/Google/status/2052462651666796743">🔗</a></li>
+<li>Grok Computer เปิดตัวพร้อมฟังก์ชันระบบไฟล์เต็มรูปแบบและการเข้าถึง CLI ที่มา: Elon Musk <a href="https://x.com/elonmusk/status/2052523562247016788">🔗</a></li>
+<li>องค์การสหประชาชาติจะทำให้ค่าโดยสารเครื่องบินแพงขึ้น เนื่องจากสายการบินจะต้องจ่ายเงินเพื่อชดเชยการปล่อยก๊าซเรือนกระจก ที่มา: The Wall Street Journal <a href="https://x.com/WSJ/status/2052432969575350580">🔗</a></li>
+</ul>
+<h1>ข่าวต่างประเทศ (International News)</h1>
+<p>ภาพรวม: ความตึงเครียดทางภูมิรัฐศาสตร์ในตะวันออกกลางทวีความรุนแรงขึ้นอย่างมากจากการปะทะทางทหารระหว่างสหรัฐฯ และอิหร่าน ขณะที่การลงทุนในเทคโนโลยี AI และการพัฒนาด้านสุขภาพยังคงเป็นประเด็นสำคัญระดับโลก</p>
+<h3>🌍 การทูตระดับโลกและความมั่นคง</h3>
+<p>ภาพรวม: ความขัดแย้งในตะวันออกกลางยังคงร้อนระอุ มีรายงานการโจมตีทางทหารและการละเมิดสิทธิมนุษยชนที่น่าตกใจในพื้นที่ความขัดแย้ง</p>
+<ul>
+<li>สองลูกเรือชาวอินเดียที่เดินทางผ่านอิรักและดูไบ ก่อนลงจอดที่มุมไบ เล่าถึงความสิ้นหวังขณะที่ขีปนาวุธและโดรนระเบิดรอบท่าเรืออิหร่านที่พวกเขาติดอยู่กว่าหนึ่งเดือน ที่มา: Reuters <a href="https://x.com/Reuters/status/2052385461679849976">🔗</a></li>
+<li>ผู้นำของไทยและกัมพูชาเตรียมพบปะกันในฟิลิปปินส์เพื่อหารือหลังเกิดการปะทะรุนแรงระหว่างสองประเทศเมื่อปีที่แล้ว ที่มา: Bangkok Post <a href="https://x.com/BangkokPostNews/status/2052312630510162337">🔗</a></li>
+<li>ทหารอิสราเอลปรากฏภาพนำบุหรี่ใส่ปากรูปปั้นพระแม่มารี ในหมู่บ้านเดียวกับที่ทุบรูปปั้นพระเยซู ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052297383548195226">🔗</a></li>
+</ul>
+<h3>💼 เศรษฐกิจ พลังงาน และ การเงินโลก</h3>
+<p>ภาพรวม: ตลาดโลกเผชิญความเสี่ยงจากวิกฤตอสังหาฯ ในจีน ขณะที่การลงทุนในเทคโนโลยีและพลังงานสะอาดกำลังเติบโตอย่างรวดเร็ว</p>
+<ul>
+<li>อสังหาฯ จีนไร้แววฟื้นตัว ส่งผลกระทบต่อเศรษฐกิจจริง โดยกำไรของบริษัททรุดตัวติดต่อกัน 3 ปี ที่มา: กรุงเทพธุรกิจ <a href="https://x.com/ktnewsonline/status/2052433282856345633">🔗</a></li>
+<li>US FDA อนุมัติ Fast-track voucher ให้กับยาต้านมะเร็งท่อน้ำดีของ Partner Therapeutics ที่มา: Reuters <a href="https://x.com/Reuters/status/2052297439575445886">🔗</a></li>
+<li>Moody’s Ratings ระบุว่าประเทศไทยเป็นหนึ่งในประเทศเศรษฐกิจเกิดใหม่ที่มีศักยภาพในการรับมือกับวิกฤตเศรษฐกิจโลกได้ดี ที่มา: กรุงเทพธุรกิจ <a href="https://x.com/ktnewsonline/status/2052267185410871306">🔗</a></li>
+</ul>
+<h3>🚀 เทคโนโลยีอวกาศและนวัตกรรม</h3>
+<p>ภาพรวม: การพัฒนาเทคโนโลยีและนวัตกรรมยังคงขับเคลื่อนด้วยความร่วมมือระหว่างประเทศ โดยเฉพาะในด้าน AI และชิปเซมิคอนดักเตอร์</p>
+<ul>
+<li>ผู้นำของสาธารณรัฐเกาหลีใต้และเนเธอร์แลนด์หารือถึงความร่วมมือด้านชิปและปัญญาประดิษฐ์ ที่มา: Reuters <a href="https://x.com/Reuters/status/2052430813002686877">🔗</a></li>
+<li>Starship ได้ทำการทดสอบ Static Fire อย่างประสบความสำเร็จ ที่มา: Elon Musk <a href="https://x.com/elonmusk/status/2052523463680880912">🔗</a></li>
+<li>สหภาพยุโรปกำลังผ่อนปรนกฎระเบียบด้าน AI ที่สำคัญท่ามกลางแรงกดดันจากภาคอุตสาหกรรม ที่มา: Sky News <a href="https://x.com/SkyNews/status/2052417032256184739">🔗</a></li>
+</ul>
+<h3>🏢 ข่าวสารองค์กรและเทรนด์ธุรกิจ</h3>
+<p>ภาพรวม: ภาคธุรกิจทั่วโลกกำลังปรับตัวรับมือกับความผันผวนทางเศรษฐกิจและนโยบายใหม่ๆ</p>
+<ul>
+<li>Warner Bros Discovery รายงานว่ามีรายได้จากการสตรีมมิ่งเพิ่มขึ้นจากการขยาย HBO Max ไปยังต่างประเทศ ที่มา: Reuters <a href="https://x.com/Reuters/status/2052237087152230587">🔗</a></li>
+<li>ภาคธุรกิจส่วนใหญ่ยืนยันว่าจะไม่ถอนตัวออกจากตลาดจีน แม้จะมีความขัดแย้งทางการค้าระหว่างสองประเทศ ที่มา: ฐานเศรษฐกิจ <a href="https://x.com/Thansettakij/status/2052508778147324227">🔗</a></li>
+<li>โฆษกของรูดี้ จูเลียนี อดีตนายกเทศมนตรีนิวยอร์ก ระบุว่าเขาออกจากห้อง ICU แล้ว แต่จะยังคงอยู่ในโรงพยาบาลเพื่อพักฟื้นจากภาวะปอดอักเสบ ที่มา: CNN <a href="https://x.com/CNN/status/2052312552877576667">🔗</a></li>
+</ul>
+<h3>⚽️ สังคม วัฒนธรรม และกีฬา</h3>
+<p>ภาพรวม: ประเด็นทางสังคมมีความหลากหลาย ตั้งแต่การอนุรักษ์สิ่งแวดล้อมไปจนถึงกระแสความงามและประเด็นความอดทนทางสังคม</p>
+<ul>
+<li>ช่างตัดผมในแคมป์ชั่วคราวริมน้ำของเบรุตให้บริการตัดผมฟรีแก่ครอบครัวที่ถูกบังคับให้พลัดถิ่นจากเหตุโจมตีของอิสราเอลในเลบานอน ที่มา: Al Jazeera English <a href="https://x.com/AJEnglish/status/2052236983263736032">🔗</a></li>
+<li>ลูกเรือชาวอินเดียสองคนซึ่งติดอยู่ในท่าเรืออิหร่านนานกว่าหนึ่งเดือนได้เดินทางกลับบ้านสำเร็จแล้ว ที่มา: Al Jazeera English <a href="https://x.com/AJEnglish/status/2052491409786335341">🔗</a></li>
+<li>กลุ่ม K-pop BTS ปรากฏตัวบนระเบียงพระราชวังแห่งชาติของเม็กซิโก เพื่อทักทายแฟนๆ นับพันคน ที่มา: Reuters <a href="https://x.com/Reuters/status/2052326748147126459">🔗</a></li>
+</ul>
+<h1>ข่าวภายในประเทศไทย (Thailand News)</h1>
+<p>ภาพรวม: ประเด็นร้อนแรงในประเทศเน้นไปที่วิกฤตหนี้สินของเกษตรกรและค่าครองชีพที่สูงขึ้น ขณะที่รัฐบาลเร่งเปิดช่องทางสวัสดิการเพื่อช่วยเหลือประชาชน และมีการปราบปรามอาชญากรรมสิ่งแวดล้อมอย่างเข้มข้น</p>
+<h2>ประเด็นร้อนแรงในไทย</h2>
+<ul>
+<li>เกษตรกรไทยกำลังเผชิญหนี้ขั้นวิกฤตเนื่องจากมีพฤติกรรมจ่ายแต่ดอกเบี้ย ซึ่งอาจทำให้เป็นหนี้ตลอดชีวิต<br />
+ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052357783308161324">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+<li>เปิดขั้นตอนและหลักเกณฑ์การยื่นขอพักการลงโทษของทักษิณ ชินวัตร โดยมีการสัมภาษณ์พิเศษจากวิญญัติ ชาติมนตรี<br />
+ที่มา: Voice TV <a href="https://x.com/VoiceTVOfficial/status/2052357665268150487">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+<li>โรงงานปลากระป๋องถูกพบว่ามีการยัดไส้ปลานิลแทนแมคเคอเรล ซึ่งถือเป็นการกระทำที่ผิดทั้งทางแพ่งและอาญา<br />
+ที่มา: คมชัดลึก <a href="https://x.com/Kom_chad_luek/status/2052418179578859575">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+</ul>
+<h3>🌍 การทูตระดับโลกและความมั่นคง</h3>
+<p>ภาพรวม: ไม่มีข่าวสำคัญในรอบนี้</p>
+<h3>💼 เศรษฐกิจ พลังงาน และ การเงินโลก</h3>
+<p>ภาพรวม: รัฐบาลเร่งยกระดับมาตรฐานบริการสาธารณะ โดยมีการกำชับให้ปรับขึ้นค่าบริการผู้โดยสารขาออกระหว่างประเทศเพื่อเพิ่มคุณภาพบริการ ที่มา: ฐานเศรษฐกิจ <a href="https://x.com/Thansettakij/status/2052327813768987091">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</p>
+<ul>
+<li>‘มูดี้ส์’ ยกย่องประเทศไทยติดกลุ่ม 1 ใน 5 ตลาดเกิดใหม่ (Emerging Markets) ที่มีภูมิต้านทานต่อความผันผวนเศรษฐกิจโลกได้ดีที่สุด<br />
+ที่มา: กรุงเทพธุรกิจ <a href="https://x.com/ktnewsonline/status/2052267185410871306">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+<li>กระทรวงการคลังจะเปิดลงทะเบียนโครงการ “Thai Chuay Thai Plus” และบัตรสวัสดิการแห่งรัฐในวันที่ 25 พฤษภาคม<br />
+ที่มา: Bangkok Post <a href="https://x.com/BangkokPostNews/status/2052356943755555293">🔗</a> (Likes: 1, Retweets: 0, Replies: 1)</li>
+</ul>
+<h3>🚀 เทคโนโลยีอวกาศและนวัตกรรม</h3>
+<p>ภาพรวม: ไม่มีข่าวสำคัญในรอบนี้</p>
+<h3>🏢 ข่าวสารองค์กรและเทรนด์ธุรกิจ</h3>
+<p>ภาพรวม: องค์กรวิชาชีพสื่อมวลชนแสดงความร่วมมือในการปกป้องสิทธิในการตรวจสอบข้อเท็จจริง ที่มา: THE STANDARD <a href="https://x.com/thestandardth/status/2052295697597104435">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</p>
+<ul>
+<li>เอพี ไทยแลนด์ ยกระดับ Green Supply Chain โดยจับมือ DOS Life ผู้นำด้านนวัตกรรมระบบจัดการน้ำ เพื่อสร้างโซลูชัน “Water Quality Innovation”<br />
+ที่มา: THE STANDARD <a href="https://x.com/thestandardth/status/2052252123149087076">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+</ul>
+<h3>⚽️ สังคม วัฒนธรรม และกีฬา</h3>
+<p>ภาพรวม: ประชาชนสามารถตรวจสอบวันโอนจ่ายเบี้ยผู้สูงอายุได้แล้ว และมีการเตือนภัยเกี่ยวกับไวรัสฮันตาเพื่อป้องกันความเสี่ยงด้านสุขภาพ ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052387985748890110">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</p>
+<ul>
+<li>เจ้าหน้าที่อุทยานแห่งชาติออบขานใช้โดรนตามตัวและรวบมือเผาป่าในบ้านพัก โดยผู้กระทำผิดสารภาพว่าลักลอบลงมือเพียงเพื่อหวังเอาน้ำผึ้ง<br />
+ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052252216925511695">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+<li>ผู้ว่าฯ สมุทรสาคร ชี้ โรงงานต้องได้มาตรฐาน ย้ำ ฉลาก-สินค้า ต้องตรงปก<br />
+ที่มา: คมชัดลึก <a href="https://x.com/Kom_chad_luek/status/2052327586487828796">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)</li>
+</ul>
+<p>***</p>
+<h1>สรุปประเด็นร้อนแรงในไทย (Top 5)</h1>
+<p>1. **วิกฤตหนี้เกษตรกร:** เกษตรกรไทยกำลังเผชิญหนี้ขั้นวิกฤตเนื่องจากมีพฤติกรรมจ่ายแต่ดอกเบี้ย ซึ่งอาจทำให้เป็นหนี้ตลอดชีวิต ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052357783308161324">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)<br />
+2. **เงินเฟ้อและค่าครองชีพ:** ดัชนีเงินเฟ้อเดือนเมษายน 2569 กลับมาพุ่งสูงถึง +2.89% ซึ่งเป็นระดับสูงสุดในรอบ 38 เดือน ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052372886028251171">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)<br />
+3. **การปราบปรามอาชญากรรมสิ่งแวดล้อม:** เจ้าหน้าที่อุทยานแห่งชาติออบขานใช้โดรนตามตัวและรวบมือเผาป่าในบ้านพัก โดยผู้กระทำผิดสารภาพว่าลักลอบลงมือเพียงเพื่อหวังเอาน้ำผึ้ง ที่มา: PPTV HD 36 <a href="https://x.com/PPTVHD36/status/2052252216925511695">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)<br />
+4. **การตรวจสอบมาตรฐานอาหาร:** โรงงานปลากระป๋องถูกพบว่ามีการยัดไส้ปลานิลแทนแมคเคอเรล ซึ่งถือเป็นการกระทำที่ผิดทั้งทางแพ่งและอาญา ที่มา: คมชัดลึก <a href="https://x.com/Kom_chad_luek/status/2052418179578859575">🔗</a> (Likes: 0, Retweets: 0, Replies: 0)<br />
+5. **การเมืองและสวัสดิการ:** รัฐบาลเร่งเปิดลงทะเบียนโครงการ “Thai Chuay Thai Plus” และบัตรสวัสดิการแห่งรัฐในวันที่ 25 พฤษภาคม ที่มา: Bangkok Post <a href="https://x.com/BangkokPostNews/status/2052356943755555293">🔗</a> (Likes: 1, Retweets: 0, Replies: 1)</p>
+</main>
+<script id="tweet-media-data" type="application/json">{"2052191303732216284": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHrYta7a4AAOkaA.jpg"}], "2052236983263736032": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052233241281925120/vid/avc1/1280x720/s9p0fxlqJm4ICHxS.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052233241281925120/img/HphClIS30_oJUse5.jpg"}], "2052237087152230587": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2054659473176670209/LLy_0vLB?format=jpg&name=800x419"}], "2052252123149087076": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHsQbZuXUAIwzWn.jpg"}], "2052252216925511695": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHsQglXaIAACr6s.jpg"}], "2052267185410871306": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052194676304904192/vid/avc1/1920x1080/-GMQgpDcpw7uTgP-.mp4", "poster": "https://pbs.twimg.com/media/HHrcX2Da4AA-SNQ.jpg"}], "2052295697597104435": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHs4DqWWoAYjGP5.jpg"}], "2052297383548195226": [{"type": "photo", "url": "https://img.pptvhd36.com/thumbor/2026/05/07/news-92d5d60.jpg"}], "2052297439575445886": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052050808443727874/kPFBJPTt?format=jpg&name=800x419"}], "2052312552877576667": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtHX96XEAETqkv.jpg"}], "2052312630510162337": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtHdJPaYAAGJbQ.jpg"}], "2052326748147126459": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052326687044513799/vid/avc1/720x1280/_H47M6zyisjoRR8o.mp4?tag=14", "poster": "https://pbs.twimg.com/media/HHtUTT8WsAApWlg.jpg"}], "2052327586487828796": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052300278712688640/ybNm_oZd?format=jpg&name=800x419"}], "2052327813768987091": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtVRDlbsAA9CgM.jpg"}], "2052356943755555293": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtvttPaUAAe_T3.jpg"}], "2052357665268150487": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtwZsiaUAEDn8Q.jpg"}], "2052357783308161324": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052324040921292800/vid/avc1/1080x1920/N2wC-hyHY_T_XrWE.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052324040921292800/img/V15MeG_r2KIMCCqw.jpg"}], "2052371934974034341": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHt9ZI-a0AA6noh.jpg"}], "2052372886028251171": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052327755166220288/vid/avc1/1080x1920/ikKWxQzK5N1rEBv7.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052327755166220288/img/i93PWDqLOE7Cbfqv.jpg"}], "2052385461679849976": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052375412928630784/vid/avc1/1920x1080/dasnsoOWrkKsUnp0.mp4", "poster": "https://pbs.twimg.com/media/HHuA657bwAAOUQ8.jpg"}], "2052387985748890110": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHs4osMbAAAUGXx.jpg"}], "2052417032256184739": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052369670804484099/DA2UgEDQ?format=jpg&name=800x419"}], "2052418179578859575": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052353355796852736/eKLRk1EY?format=jpg&name=800x419"}], "2052430813002686877": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052391824153575427/IJLWYjB5?format=jpg&name=800x419"}], "2052432969575350580": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052161101987528706/St17Dcfo?format=jpg&name=800x419"}], "2052433282856345633": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052422152218140672/vid/avc1/1920x1080/My-VY8w3Y7bSy7zn.mp4", "poster": "https://pbs.twimg.com/media/HHurVUJaUAAmpma.jpg"}], "2052462651666796743": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvPJZHXAAMlOwO.jpg"}], "2052491409786335341": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052483874895118344/vid/avc1/1280x720/o7-YkwSUcYU0XHdM.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052483874895118344/img/ofa8RRiaUvO_DLAk.jpg"}], "2052506478959816954": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052506181747236867/vid/avc1/1280x720/CYn6R5vIucZXTSav.mp4?tag=14", "poster": "https://pbs.twimg.com/media/HHv3uNfXUAELqWd.jpg"}], "2052508027152965881": [{"type": "video", "url": "https://video.twimg.com/tweet_video/HHv4t8_WcAUhH6l.mp4", "poster": "https://pbs.twimg.com/tweet_video_thumb/HHv4t8_WcAUhH6l.jpg"}], "2052508778147324227": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvKAgdbUAAsizO.jpg"}], "2052523463680880912": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052498381688188929/vid/avc1/3840x2160/2bk1ZannUs2wo4EV.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052498381688188929/img/hw0pNUChTrm5NPEm.jpg"}, {"type": "video", "url": "https://video.twimg.com/amplify_video/2052498402164776967/vid/avc1/3840x2160/31PWz_CrOp5_HJVP.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052498402164776967/img/tDhJli38Nl1xym6E.jpg"}], "2052523562247016788": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvk0ymXkAkZ89Z.jpg"}]}</script>
+<script>
+(() => {
+  const categories = ["ทั้งหมด", "Executive Summary", "Topics", "ต่างประเทศ", "ไทย", "ประเด็นร้อน"];
+  const source = document.getElementById("source-content");
+  const feed = document.getElementById("feed");
+  const pills = document.getElementById("category-pills");
+  const searchInput = document.getElementById("search-input");
+  const root = document.documentElement;
+  const savedKey = "premium-news-saved";
+  const themeKey = "premium-news-theme";
+  const saved = new Set(JSON.parse(localStorage.getItem(savedKey) || "[]"));
+  const tweetMediaCache = new Map();
+  const embeddedTweetMediaNode = document.getElementById("tweet-media-data");
+  const embeddedTweetMedia = JSON.parse(embeddedTweetMediaNode?.textContent || "{}");
+  let activeCategory = "ทั้งหมด";
+  let query = "";
+
+  function setTheme(theme) {
+    root.classList.toggle("dark", theme !== "light");
+    localStorage.setItem(themeKey, theme);
+  }
+
+  function text(el) {
+    return (el?.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function htmlToText(html) {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return text(div);
+  }
+
+  function categoryFor(heading, currentMajor) {
+    if (/Executive Summary/i.test(heading) || /บทสรุป/.test(heading)) return "Executive Summary";
+    if (/TOPIC|ประเด็นวิเคราะห์/i.test(heading)) return "Topics";
+    if (/ประเด็นร้อน/.test(heading)) return "ประเด็นร้อน";
+    if (/International|ต่างประเทศ/i.test(heading)) return "ต่างประเทศ";
+    if (/Thailand|ประเทศไทย|ในไทย|ไทย/i.test(heading)) return "ไทย";
+    if (categories.includes(currentMajor) && currentMajor !== "ทั้งหมด") return currentMajor;
+    const value = `${heading} ${currentMajor}`;
+    if (/International|ต่างประเทศ/i.test(value)) return "ต่างประเทศ";
+    if (/Thailand|ประเทศไทย|ในไทย|ไทย/i.test(value)) return "ไทย";
+    return currentMajor || "ทั้งหมด";
+  }
+
+  function parseCards() {
+    const nodes = [...source.children];
+    const title = text(nodes.find(node => node.tagName === "H1")) || "รายงานข่าวเชิงกลยุทธ์";
+    document.getElementById("hero-title").textContent = title.replace("ประจำวันที่", "ประจำวัน ");
+    document.getElementById("hero-subtitle").textContent = "สรุปข่าวสำหรับมือถือ พร้อมโหมดอ่านสบายตาและการจัดหมวดหมู่แบบรวดเร็ว";
+
+    const cards = [];
+    let currentMajor = "ทั้งหมด";
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      if (!["H1", "H2", "H3"].includes(node.tagName)) continue;
+      const heading = text(node);
+      if (node.tagName === "H1" && cards.length === 0) continue;
+      if (node.tagName === "H1") currentMajor = categoryFor(heading, currentMajor);
+
+      const bodyNodes = [];
+      let j = i + 1;
+      while (j < nodes.length && !["H1", "H2", "H3"].includes(nodes[j].tagName)) {
+        if (nodes[j].tagName !== "DIV") bodyNodes.push(nodes[j].cloneNode(true));
+        j++;
+      }
+
+      const category = categoryFor(heading, currentMajor);
+      const bodyHtml = bodyNodes.map(n => n.outerHTML).join("");
+      const bodyText = htmlToText(bodyHtml);
+      if (!heading || (!bodyText && node.tagName !== "H2")) continue;
+      const links = bodyNodes.flatMap(n => [...n.querySelectorAll("a")].map(a => a.href));
+      cards.push({
+        id: `card-${cards.length}`,
+        title: heading,
+        category,
+        level: node.tagName,
+        bodyHtml,
+        bodyText,
+        links: [...new Set(links)]
+      });
+    }
+    return cards;
+  }
+
+  function isTwitterStatus(url) {
+    return /^https:\/\/(x|twitter)\.com\/[^/]+\/status\/\d+/i.test(url);
+  }
+
+  function tweetIdFromUrl(url) {
+    return url.match(/\/status\/(\d+)/i)?.[1] || "";
+  }
+
+  function mediaForLinks(links, cardId) {
+    const directMedia = links.map(url => {
+      const clean = url.split("?")[0].toLowerCase();
+      if (/\.(png|jpe?g|webp|gif|avif)$/.test(clean)) return `<img src="${url}" alt="" loading="lazy">`;
+      if (/\.(mp4|webm|mov|m4v)$/.test(clean)) return `<video src="${url}" controls playsinline preload="metadata"></video>`;
+      return "";
+    }).filter(Boolean).join("");
+    const tweetSlots = links
+      .filter(isTwitterStatus)
+      .slice(0, 2)
+      .map((url, idx) => `<div class="tweet-media" data-tweet-url="${url}" data-tweet-key="${cardId}-${idx}"></div>`)
+      .join("");
+    return directMedia + tweetSlots;
+  }
+
+  function metaFor(card) {
+    const linkCount = card.links.length;
+    const words = Math.max(1, Math.round(card.bodyText.length / 520));
+    return `${card.category} · ${words} min read · ${linkCount} sources`;
+  }
+
+  function renderPills() {
+    pills.innerHTML = categories.map(category => `
+      <button class="chip shrink-0 rounded-full border border-[color:var(--line)] px-4 py-2 text-sm font-medium text-[color:var(--muted)] transition ${category === activeCategory ? "active" : ""}" data-category="${category}">
+        ${category}
+      </button>
+    `).join("");
+  }
+
+  function linksFromElement(element) {
+    return [...element.querySelectorAll("a")]
+      .map(link => link.href)
+      .filter(Boolean);
+  }
+
+  function sourceNameFromItem(element) {
+    const content = text(element);
+    const match = content.match(/ที่มา:\s*([^()🔗]+)/);
+    return (match?.[1] || "Source").replace(/\s+/g, " ").trim();
+  }
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
+  }
+
+  function cleanItemHtml(element) {
+    const clone = element.cloneNode(true);
+    clone.querySelectorAll("a").forEach(link => link.remove());
+    const cleaned = text(clone)
+      .replace(/\s*\(Likes:\s*\d+,\s*Retweets:\s*\d+,\s*Replies:\s*\d+\)\s*/gi, "")
+      .replace(/\s*ที่มา:\s*[^()🔗]+/g, "")
+      .trim();
+    return escapeHtml(cleaned);
+  }
+
+  function newsItemCard(item, cardId, index) {
+    const links = linksFromElement(item);
+    const sourceName = sourceNameFromItem(item);
+    const itemMedia = mediaForLinks(links, `${cardId}-item-${index}`);
+    const sourceBadge = itemMedia ? `<span class="source-badge">${sourceName}</span>` : "";
+    const mediaBlock = itemMedia ? `<div class="media-frame mt-3">${itemMedia}</div>` : "";
+    const readMore = links[0]
+      ? `<a class="read-more-btn mt-4" href="${links[0]}" target="_blank" rel="noopener">อ่านเพิ่มเติม <i data-lucide="arrow-up-right" class="h-4 w-4"></i></a>`
+      : "";
+
+    return `
+      <article class="news-item-card">
+        <div class="news-item-copy">${cleanItemHtml(item)}</div>
+        ${mediaBlock}
+        <div class="mt-4 flex items-center justify-between gap-3">${readMore}${sourceBadge}</div>
+      </article>
+    `;
+  }
+
+  function renderBodyWithInlineMedia(card) {
+    const container = document.createElement("div");
+    container.innerHTML = card.bodyHtml;
+    const lists = [...container.querySelectorAll("ul")];
+    lists.forEach(list => {
+      const items = [...list.querySelectorAll(":scope > li")];
+      if (!items.length) return;
+      const newsList = document.createElement("div");
+      newsList.className = "news-list";
+      items.forEach((item, index) => {
+        newsList.insertAdjacentHTML("beforeend", newsItemCard(item, card.id, index));
+      });
+      list.replaceWith(newsList);
+    });
+    return container.innerHTML;
+  }
+
+  function renderCard(card, index, featuredCardId) {
+    const isSaved = saved.has(card.id);
+    const bodyContent = renderBodyWithInlineMedia(card);
+    const shouldOpen = index < 1 || card.id === featuredCardId;
+
+    return `
+      <article class="news-card fade-in card rounded-[1.55rem] p-4 transition duration-300 active:scale-[.99]" style="animation-delay:${Math.min(index * 45, 300)}ms" data-card-id="${card.id}" data-category="${card.category}">
+        <details ${shouldOpen ? "open" : ""}>
+          <summary class="cursor-pointer">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <span class="inline-flex rounded-full bg-[color:var(--accent-soft)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--accent)]">${card.category}</span>
+                <h2 class="mt-3 text-[1.16rem] font-semibold leading-snug tracking-normal">${card.title}</h2>
+                <p class="mt-2 text-xs text-[color:var(--muted)]">${metaFor(card)}</p>
+              </div>
+              <div class="flex shrink-0 flex-col items-center gap-2">
+                <button class="save-btn grid h-9 w-9 place-items-center rounded-full border border-[color:var(--line)] bg-white/5 text-[color:var(--muted)] transition" data-save="${card.id}" aria-label="Save article">
+                  <i data-lucide="${isSaved ? "bookmark-check" : "bookmark"}" class="h-4 w-4"></i>
+                </button>
+                <i data-lucide="chevron-down" class="chevron h-4 w-4 text-[color:var(--muted)] transition"></i>
+              </div>
+            </div>
+          </summary>
+          <div class="article-body pt-4">
+            <div class="space-y-3 text-[15px] leading-7 text-[color:var(--text)] opacity-90">${bodyContent}</div>
+          </div>
+        </details>
+      </article>
+    `;
+  }
+
+  function render(cards) {
+    renderPills();
+    const filtered = cards.filter(card => {
+      const categoryMatch = activeCategory === categories[0] || activeCategory === "Saved" || card.category === activeCategory;
+      const savedMatch = activeCategory !== "Saved" || saved.has(card.id);
+      const q = query.toLowerCase();
+      const queryMatch = !q || `${card.title} ${card.bodyText} ${card.category}`.toLowerCase().includes(q);
+      return categoryMatch && savedMatch && queryMatch;
+    });
+    const featuredCardId = filtered.find(card => card.links.length)?.id || "";
+    feed.innerHTML = filtered.length
+      ? filtered.map((card, index) => renderCard(card, index, featuredCardId)).join("")
+      : `<div class="card rounded-[1.55rem] p-6 text-center text-sm text-[color:var(--muted)]">ไม่พบข่าวที่ตรงกับการค้นหา</div>`;
+    document.getElementById("stat-sections").textContent = cards.reduce((total, card) => {
+      const container = document.createElement("div");
+      container.innerHTML = card.bodyHtml;
+      return total + container.querySelectorAll("li").length;
+    }, 0);
+    document.getElementById("stat-links").textContent = categories.length;
+    lucide.createIcons();
+    hydrateTweetMedia();
+  }
+
+  function bestVideoVariant(media) {
+    const variants = media?.video_info?.variants || media?.videoInfo?.variants || [];
+    return variants
+      .filter(item => item.content_type === "video/mp4" || item.type === "video/mp4")
+      .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0]?.url || "";
+  }
+
+  function renderMediaItems(items) {
+    return items.map(item => {
+      if (item.type === "photo" && item.url) {
+        return `<img src="${item.url}" alt="" loading="lazy">`;
+      }
+      if (item.type === "video" && item.url) {
+        const poster = item.poster ? ` poster="${item.poster}"` : "";
+        return `<video src="${item.url}"${poster} controls playsinline preload="metadata"></video>`;
+      }
+      return "";
+    }).filter(Boolean).join("");
+  }
+
+  function mediaHtmlFromTweet(data) {
+    const mediaItems = data?.mediaDetails || data?.media_details || [];
+    return renderMediaItems(mediaItems.map(media => {
+      if (media.type === "photo" && media.media_url_https) {
+        return { type: "photo", url: media.media_url_https };
+      }
+      const videoUrl = bestVideoVariant(media);
+      if (videoUrl) {
+        return { type: "video", url: videoUrl, poster: media.media_url_https || "" };
+      }
+      return null;
+    }).filter(Boolean));
+  }
+
+  async function fetchTweetMedia(url) {
+    if (tweetMediaCache.has(url)) return tweetMediaCache.get(url);
+    const tweetId = tweetIdFromUrl(url);
+    if (!tweetId) return "";
+    if (embeddedTweetMedia[tweetId]) {
+      const html = renderMediaItems(embeddedTweetMedia[tweetId]);
+      tweetMediaCache.set(url, html);
+      return html;
+    }
+    if (embeddedTweetMediaNode) {
+      tweetMediaCache.set(url, "");
+      return "";
+    }
+    try {
+      const endpoint = `https://cdn.syndication.twimg.com/tweet-result?id=${tweetId}&lang=th&token=a`;
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error("tweet media request failed");
+      const html = mediaHtmlFromTweet(await response.json());
+      tweetMediaCache.set(url, html);
+      return html;
+    } catch {
+      tweetMediaCache.set(url, "");
+      return "";
+    }
+  }
+
+  function hydrateTweetMedia() {
+    document.querySelectorAll(".tweet-media[data-tweet-url]").forEach(async slot => {
+      const url = slot.dataset.tweetUrl;
+      const html = await fetchTweetMedia(url);
+      if (!slot.isConnected) return;
+      if (!html) {
+        slot.remove();
+        return;
+      }
+      slot.innerHTML = html;
+    });
+  }
+
+  const cards = parseCards();
+  const preferredTheme = localStorage.getItem(themeKey) || "dark";
+  setTheme(preferredTheme);
+  render(cards);
+
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    setTheme(root.classList.contains("dark") ? "light" : "dark");
+  });
+
+  pills.addEventListener("click", event => {
+    const button = event.target.closest("[data-category]");
+    if (!button) return;
+    activeCategory = button.dataset.category;
+    render(cards);
+  });
+
+  document.querySelectorAll(".quick-action").forEach(button => {
+    button.addEventListener("click", () => {
+      activeCategory = button.dataset.jump;
+      render(cards);
+      document.getElementById("feed").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  document.querySelectorAll(".bottom-nav").forEach(button => {
+    button.addEventListener("click", () => {
+      const value = button.dataset.nav;
+      if (value === "Search") {
+        searchInput.focus();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (value === "Saved") {
+        activeCategory = "Saved";
+        query = "";
+        searchInput.value = "";
+      } else if (value === "Menu") {
+        toggleMenu();
+        return;
+      } else {
+        activeCategory = value;
+      }
+      render(cards);
+    });
+  });
+
+  document.querySelectorAll(".header-search").forEach(button => {
+    button.addEventListener("click", () => {
+      searchInput.focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  function toggleMenu(force) {
+    const menu = document.getElementById("mobile-menu");
+    const open = force ?? menu.classList.contains("pointer-events-none");
+    menu.classList.toggle("pointer-events-none", !open);
+    menu.classList.toggle("translate-y-2", !open);
+    menu.classList.toggle("opacity-0", !open);
+  }
+
+  document.getElementById("menu-toggle").addEventListener("click", () => toggleMenu());
+  document.querySelectorAll(".menu-filter").forEach(button => {
+    button.addEventListener("click", () => {
+      const value = button.dataset.menuFilter;
+      if (value === "Search") searchInput.focus();
+      else activeCategory = value;
+      toggleMenu(false);
+      render(cards);
+    });
+  });
+
+  searchInput.addEventListener("input", event => {
+    query = event.target.value;
+    render(cards);
+  });
+
+  feed.addEventListener("click", event => {
+    const button = event.target.closest("[data-save]");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const id = button.dataset.save;
+    saved.has(id) ? saved.delete(id) : saved.add(id);
+    localStorage.setItem(savedKey, JSON.stringify([...saved]));
+    render(cards);
+  });
+})();
+</script>
+</body>
+</html>
