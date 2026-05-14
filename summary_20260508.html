@@ -62,6 +62,27 @@
         linear-gradient(180deg, #fbf7ef, #f6f8fb 52%, #fffaf2);
     }
     .safe-bottom { padding-bottom: calc(7.5rem + env(safe-area-inset-bottom)); }
+    @media (min-width: 1024px) {
+      .safe-bottom { padding-bottom: 2.5rem; }
+      .dashboard-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 20rem;
+        gap: 1.25rem;
+        align-items: start;
+      }
+      .dashboard-side {
+        position: sticky;
+        top: 5.75rem;
+      }
+      #feed {
+        column-gap: 1.5rem;
+      }
+      #feed .news-card {
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 1.5rem;
+      }
+    }
     .glass {
       background: var(--card);
       border: 1px solid var(--line);
@@ -204,9 +225,9 @@
   </style>
 </head>
 <body class="font-sans antialiased">
-<div id="app" class="mx-auto min-h-screen w-full max-w-md safe-bottom">
+<div id="app" class="mx-auto min-h-screen w-full max-w-md safe-bottom sm:max-w-2xl lg:max-w-6xl xl:max-w-7xl">
   <header class="sticky top-0 z-40 border-b border-white/10 bg-[color:var(--bg)]/70 backdrop-blur-2xl">
-    <div class="flex h-14 items-center justify-between px-4">
+    <div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <a href="#top" class="flex items-center gap-2" aria-label="Home">
         <span class="grid h-8 w-8 place-items-center rounded-2xl bg-sky-400/15 text-sky-300 ring-1 ring-sky-300/20">
           <i data-lucide="newspaper" class="h-4 w-4"></i>
@@ -227,18 +248,21 @@
     </div>
   </header>
 
-  <main id="top" class="px-4">
-    <section class="fade-in pb-5 pt-8">
-      <p class="mb-3 text-xs font-medium uppercase tracking-[.22em] text-[color:var(--accent)]">Daily Intelligence</p>
-      <h1 id="hero-title" class="text-[2.35rem] font-semibold leading-[1.05] tracking-normal">รายงานข่าวเชิงกลยุทธ์</h1>
-      <p id="hero-subtitle" class="mt-4 max-w-sm text-[15px] leading-7 text-[color:var(--muted)]">อ่านสรุปข่าวแบบ mobile-first พร้อมหมวดหมู่ ค้นหา และโหมดอ่านสบายตา</p>
+  <main id="top" class="px-4 sm:px-6 lg:px-8">
+    <section class="fade-in pb-5 pt-8 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end lg:gap-10 lg:pb-8 lg:pt-12">
+      <div>
+        <p class="mb-3 text-xs font-medium uppercase tracking-[.22em] text-[color:var(--accent)]">Daily Intelligence</p>
+        <h1 id="hero-title" class="text-[2.35rem] font-semibold leading-[1.05] tracking-normal sm:text-5xl lg:max-w-3xl lg:text-6xl">รายงานข่าวเชิงกลยุทธ์</h1>
+        <p id="hero-subtitle" class="mt-4 max-w-sm text-[15px] leading-7 text-[color:var(--muted)] sm:max-w-xl lg:text-base">อ่านสรุปข่าวแบบ mobile-first พร้อมหมวดหมู่ ค้นหา และโหมดอ่านสบายตา</p>
+      </div>
 
-      <label class="mt-7 flex h-12 items-center gap-3 rounded-full border border-[color:var(--line)] bg-white/8 px-4 shadow-soft backdrop-blur-xl">
+      <div class="lg:pb-1">
+      <label class="mt-7 flex h-12 items-center gap-3 rounded-full border border-[color:var(--line)] bg-white/8 px-4 shadow-soft backdrop-blur-xl lg:mt-0">
         <i data-lucide="search" class="h-4 w-4 text-[color:var(--muted)]"></i>
         <input id="search-input" type="search" class="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[color:var(--muted)]" placeholder="ค้นหาข่าว หัวข้อ หรือแหล่งข่าว">
       </label>
 
-      <div class="mt-5 grid grid-cols-3 gap-2.5">
+      <div class="mt-5 grid grid-cols-3 gap-2.5 lg:gap-3">
         <button data-jump="Executive Summary" class="quick-action rounded-2xl border border-[color:var(--line)] bg-[color:var(--accent-soft)] px-3 py-3 text-left text-xs font-medium text-[color:var(--text)] transition active:scale-[.98]">
           <i data-lucide="sparkles" class="mb-2 h-4 w-4 text-[color:var(--accent)]"></i>
           Summary
@@ -252,13 +276,16 @@
           Hot
         </button>
       </div>
+      </div>
     </section>
 
-    <nav class="sticky top-14 z-30 -mx-4 border-y border-[color:var(--line)] bg-[color:var(--bg)]/72 px-4 py-3 backdrop-blur-2xl">
-      <div id="category-pills" class="no-scrollbar flex gap-2 overflow-x-auto"></div>
+    <nav class="sticky top-14 z-30 -mx-4 border-y border-[color:var(--line)] bg-[color:var(--bg)]/72 px-4 py-3 backdrop-blur-2xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div id="category-pills" class="no-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto"></div>
     </nav>
 
-    <section class="mt-5 grid grid-cols-2 gap-3" aria-label="Stats">
+    <div class="dashboard-shell mt-5 lg:mt-6">
+    <aside class="dashboard-side space-y-4 lg:order-2">
+    <section class="grid grid-cols-2 gap-3 lg:grid-cols-1" aria-label="Stats">
       <div class="card rounded-[1.4rem] p-4">
         <p class="text-xs text-[color:var(--muted)]">ข่าวเด่น</p>
         <p id="stat-sections" class="mt-1 text-2xl font-semibold">0</p>
@@ -268,8 +295,10 @@
         <p id="stat-links" class="mt-1 text-2xl font-semibold">0</p>
       </div>
     </section>
+    </aside>
 
-    <section id="feed" class="mt-5 space-y-4"></section>
+    <section id="feed" class="mt-5 space-y-4 lg:order-1 lg:mt-0 lg:columns-2 lg:space-y-0"></section>
+    </div>
   </main>
 
   <aside id="mobile-menu" class="pointer-events-none fixed inset-x-4 top-16 z-50 translate-y-2 opacity-0 transition duration-200">
@@ -280,7 +309,7 @@
     </div>
   </aside>
 
-  <nav class="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-md">
+  <nav class="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-md sm:max-w-lg lg:hidden">
     <div class="glass grid grid-cols-5 rounded-[1.7rem] px-2 py-2">
       <button data-nav="ทั้งหมด" class="bottom-nav rounded-2xl px-2 py-2.5 text-[11px] text-[color:var(--muted)] transition">
         <i data-lucide="home" class="mx-auto mb-1 h-4 w-4"></i>Home
@@ -410,7 +439,7 @@
 <li><strong>การเมืองและสวัสดิการ:</strong> รัฐบาลเร่งเปิดลงทะเบียนโครงการ “Thai Chuay Thai Plus” และบัตรสวัสดิการแห่งรัฐในวันที่ 25 พฤษภาคม ที่มา: Bangkok Post <a href="https://x.com/BangkokPostNews/status/2052356943755555293">🔗</a> (Likes: 1, Retweets: 0, Replies: 1)</li>
 </ol>
 </main>
-<script id="tweet-media-data" type="application/json">{"2052191303732216284": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHrYta7a4AAOkaA.jpg"}], "2052236983263736032": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052233241281925120/vid/avc1/1280x720/s9p0fxlqJm4ICHxS.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052233241281925120/img/HphClIS30_oJUse5.jpg"}], "2052237087152230587": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2054659473176670209/LLy_0vLB?format=jpg&name=800x419"}], "2052252123149087076": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHsQbZuXUAIwzWn.jpg"}], "2052252216925511695": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHsQglXaIAACr6s.jpg"}], "2052267185410871306": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052194676304904192/vid/avc1/1920x1080/-GMQgpDcpw7uTgP-.mp4", "poster": "https://pbs.twimg.com/media/HHrcX2Da4AA-SNQ.jpg"}], "2052295697597104435": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHs4DqWWoAYjGP5.jpg"}], "2052297383548195226": [{"type": "photo", "url": "https://img.pptvhd36.com/thumbor/2026/05/07/news-92d5d60.jpg"}], "2052297439575445886": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052050808443727874/kPFBJPTt?format=jpg&name=800x419"}], "2052312552877576667": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtHX96XEAETqkv.jpg"}], "2052312630510162337": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtHdJPaYAAGJbQ.jpg"}], "2052326748147126459": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052326687044513799/vid/avc1/720x1280/_H47M6zyisjoRR8o.mp4?tag=14", "poster": "https://pbs.twimg.com/media/HHtUTT8WsAApWlg.jpg"}], "2052327586487828796": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052300278712688640/ybNm_oZd?format=jpg&name=800x419"}], "2052327813768987091": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtVRDlbsAA9CgM.jpg"}], "2052356943755555293": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtvttPaUAAe_T3.jpg"}], "2052357665268150487": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtwZsiaUAEDn8Q.jpg"}], "2052357783308161324": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052324040921292800/vid/avc1/1080x1920/N2wC-hyHY_T_XrWE.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052324040921292800/img/V15MeG_r2KIMCCqw.jpg"}], "2052371934974034341": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHt9ZI-a0AA6noh.jpg"}], "2052372886028251171": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052327755166220288/vid/avc1/1080x1920/ikKWxQzK5N1rEBv7.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052327755166220288/img/i93PWDqLOE7Cbfqv.jpg"}], "2052385461679849976": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052375412928630784/vid/avc1/1920x1080/dasnsoOWrkKsUnp0.mp4", "poster": "https://pbs.twimg.com/media/HHuA657bwAAOUQ8.jpg"}], "2052387985748890110": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHs4osMbAAAUGXx.jpg"}], "2052417032256184739": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052369670804484099/DA2UgEDQ?format=jpg&name=800x419"}], "2052418179578859575": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052353355796852736/eKLRk1EY?format=jpg&name=800x419"}], "2052430813002686877": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052391824153575427/IJLWYjB5?format=jpg&name=800x419"}], "2052432969575350580": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052161101987528706/St17Dcfo?format=jpg&name=800x419"}], "2052433282856345633": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052422152218140672/vid/avc1/1920x1080/My-VY8w3Y7bSy7zn.mp4", "poster": "https://pbs.twimg.com/media/HHurVUJaUAAmpma.jpg"}], "2052462651666796743": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvPJZHXAAMlOwO.jpg"}], "2052491409786335341": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052483874895118344/vid/avc1/1280x720/o7-YkwSUcYU0XHdM.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052483874895118344/img/ofa8RRiaUvO_DLAk.jpg"}], "2052506478959816954": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052506181747236867/vid/avc1/1280x720/CYn6R5vIucZXTSav.mp4?tag=14", "poster": "https://pbs.twimg.com/media/HHv3uNfXUAELqWd.jpg"}], "2052508027152965881": [{"type": "video", "url": "https://video.twimg.com/tweet_video/HHv4t8_WcAUhH6l.mp4", "poster": "https://pbs.twimg.com/tweet_video_thumb/HHv4t8_WcAUhH6l.jpg"}], "2052508778147324227": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvKAgdbUAAsizO.jpg"}], "2052523463680880912": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052498381688188929/vid/avc1/3840x2160/2bk1ZannUs2wo4EV.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052498381688188929/img/hw0pNUChTrm5NPEm.jpg"}, {"type": "video", "url": "https://video.twimg.com/amplify_video/2052498402164776967/vid/avc1/3840x2160/31PWz_CrOp5_HJVP.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052498402164776967/img/tDhJli38Nl1xym6E.jpg"}], "2052523562247016788": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvk0ymXkAkZ89Z.jpg"}]}</script>
+<script id="tweet-media-data" type="application/json">{"2052191303732216284": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHrYta7a4AAOkaA.jpg"}], "2052236983263736032": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052233241281925120/vid/avc1/1280x720/s9p0fxlqJm4ICHxS.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052233241281925120/img/HphClIS30_oJUse5.jpg"}], "2052237087152230587": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2054659473176670209/LLy_0vLB?format=jpg&name=800x419"}], "2052252123149087076": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHsQbZuXUAIwzWn.jpg"}], "2052252216925511695": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHsQglXaIAACr6s.jpg"}], "2052267185410871306": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052194676304904192/vid/avc1/1920x1080/-GMQgpDcpw7uTgP-.mp4", "poster": "https://pbs.twimg.com/media/HHrcX2Da4AA-SNQ.jpg"}], "2052295697597104435": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHs4DqWWoAYjGP5.jpg"}], "2052297383548195226": [{"type": "photo", "url": "https://img.pptvhd36.com/thumbor/2026/05/07/news-92d5d60.jpg"}], "2052297439575445886": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2054598110387617792/50i6Mrz7?format=jpg&name=800x419"}], "2052312552877576667": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtHX96XEAETqkv.jpg"}], "2052312630510162337": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtHdJPaYAAGJbQ.jpg"}], "2052326748147126459": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052326687044513799/vid/avc1/720x1280/_H47M6zyisjoRR8o.mp4?tag=14", "poster": "https://pbs.twimg.com/media/HHtUTT8WsAApWlg.jpg"}], "2052327586487828796": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052300278712688640/ybNm_oZd?format=jpg&name=800x419"}], "2052327813768987091": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtVRDlbsAA9CgM.jpg"}], "2052356943755555293": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtvttPaUAAe_T3.jpg"}], "2052357665268150487": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHtwZsiaUAEDn8Q.jpg"}], "2052357783308161324": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052324040921292800/vid/avc1/1080x1920/N2wC-hyHY_T_XrWE.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052324040921292800/img/V15MeG_r2KIMCCqw.jpg"}], "2052371934974034341": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHt9ZI-a0AA6noh.jpg"}], "2052372886028251171": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052327755166220288/vid/avc1/1080x1920/ikKWxQzK5N1rEBv7.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052327755166220288/img/i93PWDqLOE7Cbfqv.jpg"}], "2052385461679849976": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052375412928630784/vid/avc1/1920x1080/dasnsoOWrkKsUnp0.mp4", "poster": "https://pbs.twimg.com/media/HHuA657bwAAOUQ8.jpg"}], "2052387985748890110": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHs4osMbAAAUGXx.jpg"}], "2052417032256184739": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052369670804484099/DA2UgEDQ?format=jpg&name=800x419"}], "2052418179578859575": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052353355796852736/eKLRk1EY?format=jpg&name=800x419"}], "2052430813002686877": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052391824153575427/IJLWYjB5?format=jpg&name=800x419"}], "2052432969575350580": [{"type": "photo", "url": "https://pbs.twimg.com/card_img/2052161101987528706/St17Dcfo?format=jpg&name=800x419"}], "2052433282856345633": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052422152218140672/vid/avc1/1920x1080/My-VY8w3Y7bSy7zn.mp4", "poster": "https://pbs.twimg.com/media/HHurVUJaUAAmpma.jpg"}], "2052462651666796743": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvPJZHXAAMlOwO.jpg"}], "2052491409786335341": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052483874895118344/vid/avc1/1280x720/o7-YkwSUcYU0XHdM.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052483874895118344/img/ofa8RRiaUvO_DLAk.jpg"}], "2052506478959816954": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052506181747236867/vid/avc1/1280x720/CYn6R5vIucZXTSav.mp4?tag=14", "poster": "https://pbs.twimg.com/media/HHv3uNfXUAELqWd.jpg"}], "2052508027152965881": [{"type": "video", "url": "https://video.twimg.com/tweet_video/HHv4t8_WcAUhH6l.mp4", "poster": "https://pbs.twimg.com/tweet_video_thumb/HHv4t8_WcAUhH6l.jpg"}], "2052508778147324227": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvKAgdbUAAsizO.jpg"}], "2052523463680880912": [{"type": "video", "url": "https://video.twimg.com/amplify_video/2052498381688188929/vid/avc1/3840x2160/2bk1ZannUs2wo4EV.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052498381688188929/img/hw0pNUChTrm5NPEm.jpg"}, {"type": "video", "url": "https://video.twimg.com/amplify_video/2052498402164776967/vid/avc1/3840x2160/31PWz_CrOp5_HJVP.mp4", "poster": "https://pbs.twimg.com/amplify_video_thumb/2052498402164776967/img/tDhJli38Nl1xym6E.jpg"}], "2052523562247016788": [{"type": "photo", "url": "https://pbs.twimg.com/media/HHvk0ymXkAkZ89Z.jpg"}]}</script>
 <script>
 (() => {
   const categories = ["ทั้งหมด", "Executive Summary", "Topics", "ต่างประเทศ", "ไทย", "ประเด็นร้อน"];
@@ -628,7 +657,7 @@
     const meta = metaFor(card);
 
     return `
-      <article class="news-card fade-in card rounded-[1.55rem] p-4 transition duration-300 active:scale-[.99]" style="animation-delay:${Math.min(index * 45, 300)}ms" data-card-id="${card.id}" data-category="${card.category}">
+      <article class="news-card fade-in card break-inside-avoid rounded-[1.55rem] p-4 transition duration-300 active:scale-[.99]" style="animation-delay:${Math.min(index * 45, 300)}ms" data-card-id="${card.id}" data-category="${card.category}">
         <details ${shouldOpen ? "open" : ""}>
           <summary class="cursor-pointer">
             <div class="flex items-start justify-between gap-3">
